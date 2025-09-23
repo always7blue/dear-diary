@@ -1,35 +1,89 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { registerUser } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const [error, setError] = useState('');
 
-  const handleRegister = async (e) => {
+  useEffect(() => {
+  if (process.env.NODE_ENV === 'production') {
+    const token = localStorage.getItem('token');
+    if (token) navigate('/');
+  }
+}, [navigate]);
+
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await registerUser({ username, email, password });
-      alert('Kayıt başarılı!');
-      navigate('/login');
+      const res = await registerUser(form);
+
+      // Yeni kullanıcı kaydı başarılıysa token varsa kaydet ve ana sayfaya yönlendir
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        navigate('/'); // ana sayfa
+      }
+
     } catch (err) {
-      alert('Kayıt başarısız!');
+      const msg = err.response?.data?.message || 'Something went wrong';
+
+      if (msg.includes('Email already exists')) {
+        // Kullanıcıyı login sayfasına yönlendir
+        setError('Email already exists. Please login.');
+        navigate('/login');
+      } else {
+        setError(msg);
+      }
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 bg-white p-8 rounded-2xl shadow-lg">
-      <h2 className="text-2xl font-semibold mb-4">Register</h2>
-      <form onSubmit={handleRegister} className="flex flex-col gap-3">
-        <input placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} className="p-2 rounded-lg border"/>
-        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="p-2 rounded-lg border"/>
-        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="p-2 rounded-lg border"/>
-        <button type="submit" className="bg-pink-300 rounded-lg p-2 mt-2 hover:bg-pink-400 transition">Register</button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-rose-50">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Register</h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            name="username"
+            placeholder="Username"
+            value={form.username}
+            onChange={handleChange}
+            className="border p-2 rounded"
+            required
+          />
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            className="border p-2 rounded"
+            required
+          />
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            className="border p-2 rounded"
+            required
+          />
+          <button
+            type="submit"
+            className="bg-rose-400 text-white p-2 rounded hover:bg-rose-500 transition"
+          >
+            Register
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
 
 export default Register;
+
