@@ -5,3 +5,8 @@
 body {
   @apply bg-rose-50 text-gray-800 font-poppins;
 }
+
+.dark body {
+  background-color: #121824;
+  color: #000000;
+}

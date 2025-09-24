@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addMood, getMoods, getTasks, getJournals, addTask, addJournal, getProfile, BASE_URL, deleteJournal } from '../api/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate as useNav } from 'react-router-dom';
+import Calendar from '../components/Calendar';
 import TaskItem from '../components/TaskItem';
 import JournalEntry from '../components/JournalEntry';
+
 
 const moodsEmoji = ['😊','😔','😡','😴','😎','🤩'];
 
@@ -143,23 +145,31 @@ const Home = () => {
   const selectedDayMood = moods.find(m => m.date?.startsWith(selectedDate));
 
   return (
+
     <div className="max-w-4xl mx-auto mt-10 p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-3 flex justify-between items-center gap-3">
-        <input type="date" value={selectedDate} onChange={(e)=>setSelectedDate(e.target.value)} className="border p-2 rounded" />
-        <Link to="/profile" className="text-rose-600 underline">Profil</Link>
-        <Link to="/profile" className="block w-9 h-9 rounded-full overflow-hidden bg-gray-200">
-          {profile?.avatar_url ? (
-            <img src={`${BASE_URL}${profile.avatar_url}`} alt="avatar" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">😊</div>
-          )}
-        </Link>
+        <Calendar
+          value={selectedDate}
+          onChange={setSelectedDate}
+          month={new Date(selectedDate)}
+          setMonth={(d)=>setSelectedDate(d.toISOString().slice(0,10))}
+          onDayDoubleClick={(d)=>navigate(`/calendar?month=${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
+        />
+        {/* Sağ: Profil yazısı ve avatar */}
+          <div className="flex items-center gap-3">
+            <Link to="/profile" className="block w-9 h-9 rounded-full overflow-hidden bg-gray-200">
+              {profile?.avatar_url ? (
+                <img src={`${BASE_URL}${profile.avatar_url}`} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">😊</div>
+              )}
+            </Link>
+          </div>
       </div>
       
       {/* Mood */}
-      <div className="bg-white rounded-2xl shadow-md p-4">
-        <h2 className="text-xl font-semibold mb-3">Seçilen Günün Mood'u</h2>
-        
+      <div className="bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+        <h2 className="text-xl font-semibold mb-3 ">Bugünki Mood'um</h2>       
         {selectedDayMood ? (
           <div className="p-3 bg-pink-100 rounded-lg">
             <p className="text-3xl">{selectedDayMood.mood}</p>
@@ -167,12 +177,12 @@ const Home = () => {
           </div>
         ) : (
           <>
-            <div className="flex gap-2 mb-3">
+            <div className="flex flex-wrap gap-3 mb-3"> 
               {moodsEmoji.map(m => (
                 <button
                   key={m}
                   onClick={() => setSelectedMood(m)}
-                  className={`text-2xl p-2 rounded-lg border ${selectedMood === m ? 'bg-pink-200' : ''}`}
+                  className={`text-3xl p-2.5 rounded-lg border ${selectedMood === m ? 'bg-pink-200' : ''}`}
                 >
                   {m}
                 </button>
@@ -188,19 +198,19 @@ const Home = () => {
             />
 
             <button
-              type="button" // bu eğer form submit değilse
+              type="button"
               onClick={handleAddMood}
               className="bg-pink-300 rounded-lg p-2 w-full hover:bg-pink-400 transition"
             >
               Kaydet
             </button>
-
           </>
         )}
       </div>
 
+
       {/* Tasks */}
-      <div className="bg-white rounded-2xl shadow-md p-4">
+      <div className="bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
         <h2 className="text-xl font-semibold mb-3">Görevler</h2>
         <form onSubmit={handleAddTask} className="flex gap-2 mb-3">
           <input
@@ -224,7 +234,7 @@ const Home = () => {
       </div>
 
       {/* Journal */}
-      <div className="bg-white rounded-2xl shadow-md p-4">
+      <div className="bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
         <h2 className="text-xl font-semibold mb-3">Günlük Notlar</h2>
         <form onSubmit={handleAddJournal} className="flex flex-col gap-2 mb-3">
           <textarea

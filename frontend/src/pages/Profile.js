@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile, updateProfile, uploadAvatar, BASE_URL } from '../api/api';
+import { ThemeContext } from '../index';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { theme, toggle } = useContext(ThemeContext);
   const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState('');
   const [saving, setSaving] = useState(false);
@@ -56,14 +58,21 @@ const Profile = () => {
   const avatarSrc = profile.avatar_url ? `${BASE_URL}${profile.avatar_url}` : undefined;
 
   return (
-    <div className="max-w-xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow">
+    <div className={`max-w-xl mx-auto mt-10 rounded-3xl p-6 shadow-md hover:shadow-lg transition-shadow duration-200
+                ${theme === 'light' ? 'bg-yellow-100 text-gray-900' : 'dark:bg-night-50 dark:text-black'}`}>
+
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Profil</h1>
-        <button onClick={onLogout} className="text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Çıkış Yap</button>
+        <div className="flex items-center gap-2">
+          <button onClick={toggle} className="text-sm px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 dark:hover:bg-night-200">
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </button>
+          <button onClick={onLogout} className="text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Çıkış Yap</button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4 mb-6">
-        <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+        <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-night-200 overflow-hidden flex items-center justify-center">
           {avatarSrc ? (
             <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
           ) : (
@@ -78,14 +87,20 @@ const Profile = () => {
 
       <form onSubmit={onSave} className="flex flex-col gap-3">
         <input
-          className="border p-2 rounded"
+          className={`border p-2 rounded w-full
+                      ${theme==='light' ? 'bg-white text-gray-900' : 'bg-gray-700 text-gray-100'}`}
           placeholder="Kullanıcı adı"
           value={username}
           onChange={(e)=>setUsername(e.target.value)}
         />
-        <button disabled={saving} className="bg-rose-400 text-white p-2 rounded hover:bg-rose-500 disabled:opacity-60">
+
+        <button disabled={saving} 
+                className={`p-2 rounded text-white w-full
+                            ${theme==='light' ? 'bg-rose-400 hover:bg-rose-500' : 'bg-rose-700 hover:bg-rose-600'} 
+                            disabled:opacity-60`}>
           {saving ? 'Kaydediliyor...' : 'Kaydet'}
         </button>
+
       </form>
     </div>
   );

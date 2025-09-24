@@ -1,0 +1,67 @@
+import { useMemo } from 'react';
+
+const dayNames = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+
+export default function Calendar({ value, onChange, month, setMonth, theme, onDayDoubleClick }) {
+  const firstDay = useMemo(() => new Date(month.getFullYear(), month.getMonth(), 1), [month]);
+  const lastDay = useMemo(() => new Date(month.getFullYear(), month.getMonth()+1, 0), [month]);
+  const startOffset = (firstDay.getDay() + 6) % 7; // make Monday=0
+  const totalDays = lastDay.getDate();
+
+  const cells = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= totalDays; d++) cells.push(d);
+
+  const isSelected = (d) => {
+    if (!d) return false;
+    const y = month.getFullYear();
+    const m = String(month.getMonth()+1).padStart(2,'0');
+    const day = String(d).padStart(2,'0');
+    const iso = `${y}-${m}-${day}`;
+    return value === iso;
+  };
+
+  const goPrev = () => setMonth(new Date(month.getFullYear(), month.getMonth()-1, 1));
+  const goNext = () => setMonth(new Date(month.getFullYear(), month.getMonth()+1, 1));
+
+  const selectDay = (d) => {
+    const y = month.getFullYear();
+    const m = String(month.getMonth()+1).padStart(2,'0');
+    const day = String(d).padStart(2,'0');
+    onChange(`${y}-${m}-${day}`);
+  };
+
+  return (
+    <div className={`rounded-2xl p-4 border bg-white dark:bg-night-50 dark:text-black`}> 
+      <div className="flex items-center justify-between mb-3">
+        <button onClick={goPrev} className="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-night-200">‹</button>
+        <div className="font-semibold">
+          {month.toLocaleString('tr-TR', { month: 'long' })} {month.getFullYear()}
+        </div>
+        <button onClick={goNext} className="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-night-200">›</button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500">
+        {dayNames.map(n => (
+          <div key={n} className="py-1">{n}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1 mt-1">
+        {cells.map((d, idx) => (
+          <button
+            key={idx}
+            disabled={!d}
+            onClick={() => d && selectDay(d)}
+            onDoubleClick={() => d && onDayDoubleClick && onDayDoubleClick(new Date(month.getFullYear(), month.getMonth(), d))}
+            className={`h-9 rounded-full text-sm transition
+              ${!d ? 'opacity-0 cursor-default' : ''}
+              ${isSelected(d) ? 'bg-rose-400 text-white shadow' : 'hover:bg-rose-100 dark:hover:bg-night-200'}`}
+          >
+            {d || ''}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
