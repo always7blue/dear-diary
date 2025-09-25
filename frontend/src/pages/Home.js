@@ -5,6 +5,8 @@ import { Link, useNavigate as useNav } from 'react-router-dom';
 import Calendar from '../components/Calendar';
 import TaskItem from '../components/TaskItem';
 import JournalEntry from '../components/JournalEntry';
+import MoodChart from '../components/MoodChart';
+import { ThemeContext } from '../index';
 
 
 const moodsEmoji = ['😊','😔','😡','😴','😎','🤩'];
@@ -21,6 +23,7 @@ const Home = () => {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0,10)); // YYYY-MM-DD
 
   const navigate = useNavigate();
+  const { theme } = React.useContext(ThemeContext);
 
   const handleAuthError = useCallback((err) => {
     if (err?.response?.status === 401) {
@@ -165,8 +168,8 @@ const Home = () => {
 
   return (
 
-    <div className="max-w-4xl mx-auto mt-10 p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="md:col-span-3 flex justify-between items-center gap-3">
+    <div className="max-w-6xl mx-auto mt-10 p-4 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="md:col-span-4 flex justify-between items-center gap-3">
         <Calendar
           value={selectedDate}
           onChange={setSelectedDate}
@@ -184,6 +187,11 @@ const Home = () => {
               )}
             </Link>
           </div>
+      </div>
+      
+      {/* Mood Chart */}
+      <div className="md:col-span-2">
+        <MoodChart theme={theme} />
       </div>
       
       {/* Mood */}
@@ -226,7 +234,6 @@ const Home = () => {
           </>
         )}
       </div>
-
 
       {/* Tasks */}
       <div className="bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
