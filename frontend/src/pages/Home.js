@@ -7,6 +7,20 @@ import TaskItem from '../components/TaskItem';
 import JournalEntry from '../components/JournalEntry';
 import MoodChart from '../components/MoodChart';
 import { ThemeContext } from '../index';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 
 const moodsEmoji = ['😊','😔','😡','😴','😎','🤩'];
@@ -24,6 +38,13 @@ const Home = () => {
 
   const navigate = useNavigate();
   const { theme } = React.useContext(ThemeContext);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleAuthError = useCallback((err) => {
     if (err?.response?.status === 401) {
@@ -161,6 +182,19 @@ const Home = () => {
     }
   };
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setTasks((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   
 
   // Seçilen günün mood'unu bul
@@ -252,11 +286,19 @@ const Home = () => {
             Ekle
           </button>
         </form>
-        <div>
-          {tasks.map(t => (
-            <TaskItem key={t.id} task={t} fetchTasks={fetchTasks} />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+            <div>
+              {tasks.map(t => (
+                <TaskItem key={t.id} task={t} fetchTasks={fetchTasks} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       {/* Journal */}

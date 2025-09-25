@@ -74,14 +74,14 @@ export default function CalendarPage() {
       <div className="grid grid-cols-7 gap-2 text-center text-xs text-gray-500 mb-1">
         {dayNames.map(n => <div key={n} className="py-1">{n}</div>)}
       </div>
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-3">
         {cells.map((d, idx) => {
           const day = d ? `${y}-${m}-${String(d).padStart(2,'0')}` : '';
           const notes = d ? (notesByDay[day] || []) : [];
           return (
-            <div key={idx} className={`min-h-24 rounded-2xl p-2 border bg-white dark:bg-night-50 dark:text-black ${!d && 'opacity-0'}`}> 
-              <div className="text-xs font-semibold mb-1">{d || ''}</div>
-              <div className="flex flex-col gap-1">
+            <div key={idx} className={`min-h-32 rounded-2xl p-3 border bg-white dark:bg-night-50 dark:text-black ${!d && 'opacity-0'}`}> 
+              <div className="text-sm font-semibold mb-2">{d || ''}</div>
+              <div className="flex flex-col gap-2">
                 {notes.map(n => (
                   <div key={n.id} className="flex items-center justify-between bg-blue-50 rounded px-2 py-1">
                     <span className="text-xs truncate">{n.content}</span>
