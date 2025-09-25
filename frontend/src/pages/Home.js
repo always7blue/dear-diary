@@ -88,39 +88,58 @@ const Home = () => {
   }, [selectedDate, fetchMoods, fetchTasks, fetchJournals]);
 
   const handleAddMood = async (e) => {
-    e.preventDefault();
-    if(!selectedMood) return alert('Lütfen bir ruh hali seçin!');
-    try {
-      await addMood({ mood: selectedMood, note, date: selectedDate });
-      setSelectedMood('');
-      setNote('');
-      fetchMoods();
-    } catch (err) {
-      handleAuthError(err);
-    }
-  };
+  e.preventDefault();
+  if (!selectedMood) return alert('Lütfen bir ruh hali seçin!');
+
+  try {
+    await addMood({
+      mood: selectedMood,
+      note,
+      date: selectedDate, // burada seçili tarihi gönderiyoruz
+    });
+
+    setSelectedMood('');
+    setNote('');
+
+    // Moodları tekrar çek, seçili tarihe göre
+    fetchMoods();
+  } catch (err) {
+    handleAuthError(err);
+  }
+};
 
   const handleAddTask = async (e) => {
     e.preventDefault();
-    if (!taskText) return;
+    if (!taskText) return alert("Lütfen görev girin!");
+
     try {
-      await addTask({ text: taskText, date: selectedDate });
-      setTaskText('');
+      await addTask({
+        text: taskText,
+        done: false,
+        day: selectedDate, // Direkt selectedDate kullanıyoruz
+      });
+
+      setTaskText("");
       fetchTasks();
     } catch (err) {
-      handleAuthError(err);
+      console.error(err);
     }
   };
 
-  const handleAddJournal = async (e) => {
+    const handleAddJournal = async (e) => {
     e.preventDefault();
-    if (!journalText) return;
+    if (!journalText) return alert("Lütfen içerik girin!");
+
     try {
-      await addJournal({ content: journalText, date: selectedDate });
-      setJournalText('');
+      await addJournal({
+        content: journalText,
+        day: selectedDate, // Direkt selectedDate kullanıyoruz
+      });
+
+      setJournalText("");
       fetchJournals();
     } catch (err) {
-      handleAuthError(err);
+      console.error(err);
     }
   };
 
@@ -142,7 +161,7 @@ const Home = () => {
   
 
   // Seçilen günün mood'unu bul
-  const selectedDayMood = moods.find(m => m.date?.startsWith(selectedDate));
+  const selectedDayMood = moods.find(m => m.created_at.startsWith(selectedDate));
 
   return (
 
