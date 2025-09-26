@@ -8,6 +8,7 @@ import moodRouter from "./routes/mood.js";
 import tasksRouter from "./routes/tasks.js";
 import journalsRouter from "./routes/journals.js";
 import profileRouter from "./routes/profile.js";
+import googleAuthRouter from "./routes/googleAuth.js";
 import { pool } from "./db.js";
 
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads'));
 
 app.use("/auth", authRouter);
+app.use("/auth", googleAuthRouter);
 app.use("/mood", moodRouter);
 app.use("/tasks", tasksRouter);
 app.use("/journals", journalsRouter);

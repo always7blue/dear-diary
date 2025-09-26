@@ -1,7 +1,8 @@
 import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProfile, updateProfile, uploadAvatar, BASE_URL } from '../api/api';
+import { getProfile, updateProfile, BASE_URL } from '../api/api';
 import { ThemeContext } from '../index';
+import AvatarUpload from '../components/AvatarUpload';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -9,6 +10,12 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -37,15 +44,39 @@ const Profile = () => {
     }
   };
 
-  const onAvatarChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const res = await uploadAvatar(file);
-      setProfile(res.data);
-    } catch (err) {
-      console.error(err);
+  const onPasswordSave = async (e) => {
+    e.preventDefault();
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      alert('Yeni şifreler eşleşmiyor');
+      return;
     }
+    
+    if (passwordForm.newPassword.length < 6) {
+      alert('Yeni şifre en az 6 karakter olmalı');
+      return;
+    }
+    
+    try {
+      setSaving(true);
+      const res = await updateProfile({
+        username,
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      });
+      setProfile(res.data);
+      setShowPasswordForm(false);
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      alert('Şifre başarıyla güncellendi');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Şifre güncelleme hatası');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onAvatarUpdate = (newProfile) => {
+    setProfile(newProfile);
   };
 
   const onLogout = () => {
@@ -71,19 +102,11 @@ const Profile = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mb-6">
-        <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-night-200 overflow-hidden flex items-center justify-center">
-          {avatarSrc ? (
-            <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-3xl">😊</span>
-          )}
-        </div>
-        <label className="cursor-pointer bg-rose-200 px-3 py-2 rounded hover:bg-rose-300">
-          Fotoğraf Yükle
-          <input type="file" accept="image/*" className="hidden" onChange={onAvatarChange} />
-        </label>
-      </div>
+      <AvatarUpload 
+        currentAvatar={profile.avatar_url} 
+        onAvatarUpdate={onAvatarUpdate}
+        theme={theme}
+      />
 
       <form onSubmit={onSave} className="flex flex-col gap-3">
         <input
@@ -100,8 +123,57 @@ const Profile = () => {
                             disabled:opacity-60`}>
           {saving ? 'Kaydediliyor...' : 'Kaydet'}
         </button>
-
       </form>
+
+      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+        <div className="flex justify-between items-center mb-3">
+          <button
+            type="button"
+            onClick={() => setShowPasswordForm(!showPasswordForm)}
+            className="text-sm text-rose-600 hover:text-rose-700"
+          >
+            {showPasswordForm ? 'İptal' : 'Şifre Değiştir'}
+          </button>
+        </div>
+
+        {showPasswordForm && (
+          <form onSubmit={onPasswordSave} className="flex flex-col gap-3">
+            <input
+              type="password"
+              placeholder="Mevcut şifre"
+              value={passwordForm.currentPassword}
+              onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+              className={`border p-2 rounded w-full
+                          ${theme==='light' ? 'bg-white text-gray-900' : 'bg-gray-700 text-gray-100'}`}
+            />
+            <input
+              type="password"
+              placeholder="Yeni şifre"
+              value={passwordForm.newPassword}
+              onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+              className={`border p-2 rounded w-full
+                          ${theme==='light' ? 'bg-white text-gray-900' : 'bg-gray-700 text-gray-100'}`}
+            />
+            <input
+              type="password"
+              placeholder="Yeni şifre tekrar"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+              className={`border p-2 rounded w-full
+                          ${theme==='light' ? 'bg-white text-gray-900' : 'bg-gray-700 text-gray-100'}`}
+            />
+            <button
+              type="submit"
+              disabled={saving}
+              className={`p-2 rounded text-white w-full
+                          ${theme==='light' ? 'bg-green-400 hover:bg-green-500' : 'bg-green-700 hover:bg-green-600'} 
+                          disabled:opacity-60`}
+            >
+              {saving ? 'Güncelleniyor...' : 'Şifreyi Güncelle'}
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 };

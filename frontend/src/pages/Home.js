@@ -6,6 +6,8 @@ import Calendar from '../components/Calendar';
 import TaskItem from '../components/TaskItem';
 import JournalEntry from '../components/JournalEntry';
 import MoodChart from '../components/MoodChart';
+import TaskStats from '../components/TaskStats';
+import PomodoroTimer from '../components/PomodoroTimer';
 import { ThemeContext } from '../index';
 import {
   DndContext,
@@ -35,6 +37,8 @@ const Home = () => {
   const [journalText, setJournalText] = useState('');
   const [profile, setProfile] = useState(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0,10)); // YYYY-MM-DD
+  const [currentMonth, setCurrentMonth] = useState(() => new Date()); // Takvim için ayrı ay state'i
+  const [showAddTask, setShowAddTask] = useState(false);
 
   const navigate = useNavigate();
   const { theme } = React.useContext(ThemeContext);
@@ -150,6 +154,10 @@ const Home = () => {
     }
   };
 
+  const handleTaskAreaDoubleClick = () => {
+    setShowAddTask(true);
+  };
+
     const handleAddJournal = async (e) => {
     e.preventDefault();
     if (!journalText) return alert("Lütfen içerik girin!");
@@ -204,13 +212,20 @@ const Home = () => {
 
     <div className="max-w-6xl mx-auto mt-10 p-4 grid grid-cols-1 md:grid-cols-4 gap-6">
       <div className="md:col-span-4 flex justify-between items-center gap-3">
-        <Calendar
-          value={selectedDate}
-          onChange={setSelectedDate}
-          month={new Date(selectedDate)}
-          setMonth={(d)=>setSelectedDate(d.toISOString().slice(0,10))}
-          onDayDoubleClick={(d)=>navigate(`/calendar?month=${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
-        />
+        <div className="flex gap-4 flex-1">
+          <div className="w-96">
+            <Calendar
+              value={selectedDate}
+              onChange={setSelectedDate}
+              month={currentMonth}
+              setMonth={setCurrentMonth}
+              onDayDoubleClick={(d)=>navigate(`/calendar?month=${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
+            />
+          </div>
+          <div className="w-80">
+            <PomodoroTimer theme={theme} />
+          </div>
+        </div>
         {/* Sağ: Profil yazısı ve avatar */}
           <div className="flex items-center gap-3">
             <Link to="/profile" className="block w-9 h-9 rounded-full overflow-hidden bg-gray-200">
@@ -224,15 +239,15 @@ const Home = () => {
       </div>
       
       {/* Mood Chart */}
-      <div className="md:col-span-2">
+      <div className="md:col-span-2 bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
         <MoodChart theme={theme} />
       </div>
       
       {/* Mood */}
-      <div className="bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-        <h2 className="text-xl font-semibold mb-3 ">Bugünki Mood'um</h2>       
+      <div className="bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+        <h2 className="text-xl font-semibold mb-3 ">Mood</h2>       
         {selectedDayMood ? (
-          <div className="p-3 bg-pink-100 rounded-lg">
+          <div className="p-3 bg-green-200 rounded-lg">
             <p className="text-3xl">{selectedDayMood.mood}</p>
             {selectedDayMood.note && <p className="text-sm mt-2 italic">{selectedDayMood.note}</p>}
           </div>
@@ -261,7 +276,7 @@ const Home = () => {
             <button
               type="button"
               onClick={handleAddMood}
-              className="bg-pink-300 rounded-lg p-2 w-full hover:bg-pink-400 transition"
+              className="bg-green-300 rounded-lg p-2 w-full hover:bg-green-400 transition"
             >
               Kaydet
             </button>
@@ -270,40 +285,63 @@ const Home = () => {
       </div>
 
       {/* Tasks */}
-      <div className="bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-        <h2 className="text-xl font-semibold mb-3">Görevler</h2>
-        <form onSubmit={handleAddTask} className="flex gap-2 mb-3">
-          <input
-            placeholder="Yeni görev"
-            value={taskText}
-            onChange={e => setTaskText(e.target.value)}
-            className="p-2 rounded-lg border w-full"
-          />
+      <div className="bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-xl font-semibold">Görevler</h2>
           <button
-            type="submit"
-            className="bg-green-300 rounded-lg p-2 hover:bg-green-400 transition"
+            onClick={() => setShowAddTask(!showAddTask)}
+            className="text-sm bg-green-200 px-3 py-1 rounded-full hover:bg-green-300 transition"
           >
-            Ekle
+            📊 İstatistik
           </button>
-        </form>
+        </div>
+        
+        {showAddTask && (
+          <form onSubmit={handleAddTask} className="flex gap-2 mb-3">
+            <input
+              placeholder="Yeni görev"
+              value={taskText}
+              onChange={e => setTaskText(e.target.value)}
+              className="p-2 rounded-lg border w-full"
+            />
+            <button
+              type="submit"
+              className="bg-green-300 rounded-lg p-2 hover:bg-green-400 transition"
+            >
+              Ekle
+            </button>
+          </form>
+        )}
+        
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-            <div>
-              {tasks.map(t => (
-                <TaskItem key={t.id} task={t} fetchTasks={fetchTasks} />
-              ))}
+            <div 
+              onDoubleClick={handleTaskAreaDoubleClick}
+              className="min-h-[100px] p-2 border-2 border-dashed border-transparent hover:border-gray-300 rounded-lg transition-colors cursor-pointer"
+            >
+              {tasks.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  <p>Görev yok. Boş alana çift tıklayarak görev ekleyin!</p>
+                </div>
+              ) : (
+                tasks.map(t => (
+                  <TaskItem key={t.id} task={t} fetchTasks={fetchTasks} />
+                ))
+              )}
             </div>
           </SortableContext>
         </DndContext>
+        
+        {showAddTask && <TaskStats tasks={tasks} theme={theme} />}
       </div>
 
       {/* Journal */}
-      <div className="bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-        <h2 className="text-xl font-semibold mb-3">Günlük Notlar</h2>
+      <div className="bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+        <h2 className="text-xl font-semibold mb-3">Günlük</h2>
         <form onSubmit={handleAddJournal} className="flex flex-col gap-2 mb-3">
           <textarea
             placeholder="Yeni günlük not"
@@ -324,6 +362,7 @@ const Home = () => {
           ))}
         </div>
       </div>
+
 
     </div>
   );

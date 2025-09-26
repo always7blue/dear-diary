@@ -1,6 +1,7 @@
 import { toggleTask, deleteTask } from '../api/api';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import confetti from 'canvas-confetti';
 
 const TaskItem = ({ task, fetchTasks }) => {
   const {
@@ -20,7 +21,19 @@ const TaskItem = ({ task, fetchTasks }) => {
 
   const handleToggle = async (e) => {
     e.stopPropagation();
+    const wasDone = task.done;
     await toggleTask(task.id);
+    
+    // Eğer görev tamamlandıysa confetti çal
+    if (!wasDone) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57']
+      });
+    }
+    
     fetchTasks();
   };
 

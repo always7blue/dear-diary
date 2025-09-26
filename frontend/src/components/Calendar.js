@@ -21,8 +21,14 @@ export default function Calendar({ value, onChange, month, setMonth, theme, onDa
     return value === iso;
   };
 
-  const goPrev = () => setMonth(new Date(month.getFullYear(), month.getMonth()-1, 1));
-  const goNext = () => setMonth(new Date(month.getFullYear(), month.getMonth()+1, 1));
+  const goPrev = () => {
+    const newMonth = new Date(month.getFullYear(), month.getMonth()-1, 1);
+    setMonth(newMonth);
+  };
+  const goNext = () => {
+    const newMonth = new Date(month.getFullYear(), month.getMonth()+1, 1);
+    setMonth(newMonth);
+  };
 
   const selectDay = (d) => {
     const y = month.getFullYear();
@@ -32,7 +38,7 @@ export default function Calendar({ value, onChange, month, setMonth, theme, onDa
   };
 
   return (
-    <div className={`rounded-2xl p-4 border bg-white dark:bg-night-50 dark:text-black`}> 
+    <div className={`bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200`}> 
       <div className="flex items-center justify-between mb-3">
         <button onClick={goPrev} className="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-night-200">‹</button>
         <div className="font-semibold">

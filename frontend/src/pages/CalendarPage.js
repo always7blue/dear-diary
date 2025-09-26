@@ -65,7 +65,7 @@ export default function CalendarPage() {
   for (let d = 1; d <= totalDays; d++) cells.push(d);
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 p-4">
+    <div className="max-w-4xl mx-auto mt-8 p-4 bg-yellow-100 rounded-3xl shadow-md">
       <div className="flex items-center justify-between mb-4">
         <button onClick={goPrev} className="px-3 py-1 rounded border hover:bg-gray-100">‹</button>
         <div className="text-lg font-semibold">{month.toLocaleString('tr-TR', { month: 'long' })} {y}</div>
@@ -79,11 +79,11 @@ export default function CalendarPage() {
           const day = d ? `${y}-${m}-${String(d).padStart(2,'0')}` : '';
           const notes = d ? (notesByDay[day] || []) : [];
           return (
-            <div key={idx} className={`min-h-32 rounded-2xl p-3 border bg-white dark:bg-night-50 dark:text-black ${!d && 'opacity-0'}`}> 
+            <div key={idx} className={`min-h-32 rounded-2xl p-3 border bg-yellow-50 dark:bg-night-50 dark:text-black ${!d && 'opacity-0'}`}> 
               <div className="text-sm font-semibold mb-2">{d || ''}</div>
               <div className="flex flex-col gap-2">
                 {notes.map(n => (
-                  <div key={n.id} className="flex items-center justify-between bg-blue-50 rounded px-2 py-1">
+                  <div key={n.id} className="flex items-center justify-between bg-yellow-200 rounded px-2 py-1">
                     <span className="text-xs truncate">{n.content}</span>
                     <button onClick={() => removeNote(n.id)} className="text-[10px] text-red-500">Sil</button>
                   </div>
@@ -98,7 +98,7 @@ export default function CalendarPage() {
       </div>
 
       {activeDay && (
-        <div className="mt-4 rounded-2xl p-3 border bg-white dark:bg-night-50 dark:text-black">
+        <div className="mt-4 rounded-2xl p-3 border bg-yellow-50 dark:bg-night-50 dark:text-black">
           <div className="text-sm mb-2 font-medium">{activeDay} için not ekle</div>
           <div className="flex gap-2">
             <input value={draft} onChange={(e)=>setDraft(e.target.value)} className="flex-1 border rounded p-2" placeholder="Not" />
