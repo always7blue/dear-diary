@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { addMood, getMoods, getTasks, getJournals, addTask, addJournal, getProfile, BASE_URL, deleteJournal } from '../api/api';
+import { addMood, getMoods, getTasks, getJournals, addTask, addJournal, getProfile, BASE_URL, deleteJournal, deleteMood } from '../api/api';
 import { Link, useNavigate as useNav } from 'react-router-dom';
 import Calendar from '../components/Calendar';
 import TaskItem from '../components/TaskItem';
@@ -25,7 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 
 
-const moodsEmoji = ['😊','😔','😡','😴','😎','🤩'];
+const moodsEmoji = ['😢','😔','😐','😊','🤩'];
 
 const Home = () => {
   const [selectedMood, setSelectedMood] = useState('');
@@ -116,25 +116,43 @@ const Home = () => {
   }, [selectedDate, fetchMoods, fetchTasks, fetchJournals]);
 
   const handleAddMood = async (e) => {
-  e.preventDefault();
-  if (!selectedMood) return alert('Lütfen bir ruh hali seçin!');
+    e.preventDefault();
+    if (!selectedMood) return alert('Lütfen bir ruh hali seçin!');
 
-  try {
-    await addMood({
-      mood: selectedMood,
-      note,
-      date: selectedDate, // burada seçili tarihi gönderiyoruz
-    });
+    try {
+      await addMood({
+        mood: selectedMood,
+        note,
+        date: selectedDate, // burada seçili tarihi gönderiyoruz
+      });
 
-    setSelectedMood('');
-    setNote('');
+      setSelectedMood('');
+      setNote('');
 
-    // Moodları tekrar çek, seçili tarihe göre
-    fetchMoods();
-  } catch (err) {
-    handleAuthError(err);
-  }
-};
+      // Moodları tekrar çek, seçili tarihe göre
+      await fetchMoods();
+      
+      // MoodChart'ı yenilemek için window event dispatch
+      window.dispatchEvent(new CustomEvent('moodUpdated'));
+    } catch (err) {
+      handleAuthError(err);
+    }
+  };
+
+
+  const handleDeleteMood = async () => {
+    if (!selectedDayMood) return;
+    
+    if (window.confirm('Bu mood\'u silmek istediğinizden emin misiniz?')) {
+      try {
+        await deleteMood(selectedDayMood.id);
+        await fetchMoods();
+        window.dispatchEvent(new CustomEvent('moodUpdated'));
+      } catch (err) {
+        handleAuthError(err);
+      }
+    }
+  };
 
   const handleAddTask = async (e) => {
     e.preventDefault();
@@ -206,37 +224,47 @@ const Home = () => {
   
 
   // Seçilen günün mood'unu bul
-  const selectedDayMood = moods.find(m => m.created_at.startsWith(selectedDate));
+  const selectedDayMood = moods.find(m => {
+    const moodDate = new Date(m.created_at).toISOString().split('T')[0];
+    return moodDate === selectedDate;
+  });
 
   return (
+    <div className="relative">
+      {/* Profil simgesi - görevler ile aynı hizada */}
+      <div className="absolute top-4 right-80 z-10">
+        <Link 
+        to="/profile" 
+        className="block w-12 h-12 rounded-full overflow-hidden bg-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-200">
+          
+          {profile?.avatar_url ? (
+            <img 
+            src={`${BASE_URL}${profile.avatar_url}`} 
+            alt="avatar" 
+            className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-lg">😊</div>
+          )}
+        </Link>
+      </div>
 
-    <div className="max-w-6xl mx-auto mt-10 p-4 grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div className="md:col-span-4 flex justify-between items-center gap-3">
-        <div className="flex gap-4 flex-1">
-          <div className="w-96">
-            <Calendar
-              value={selectedDate}
-              onChange={setSelectedDate}
-              month={currentMonth}
-              setMonth={setCurrentMonth}
-              onDayDoubleClick={(d)=>navigate(`/calendar?month=${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
-            />
-          </div>
-          <div className="w-80">
-            <PomodoroTimer theme={theme} />
+      <div className="max-w-6xl mx-auto mt-10 p-4 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="md:col-span-4 flex justify-between items-center gap-3">
+          <div className="flex gap-4 flex-1">
+            <div className="w-96">
+              <Calendar
+                value={selectedDate}
+                onChange={setSelectedDate}
+                month={currentMonth}
+                setMonth={setCurrentMonth}
+                onDayDoubleClick={(d)=>navigate(`/calendar?month=${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
+              />
+            </div>
+            <div className="w-80">
+              <PomodoroTimer theme={theme} />
+            </div>
           </div>
         </div>
-        {/* Sağ: Profil yazısı ve avatar */}
-          <div className="flex items-center gap-3">
-            <Link to="/profile" className="block w-9 h-9 rounded-full overflow-hidden bg-gray-200">
-              {profile?.avatar_url ? (
-                <img src={`${BASE_URL}${profile.avatar_url}`} alt="avatar" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">😊</div>
-              )}
-            </Link>
-          </div>
-      </div>
       
       {/* Mood Chart */}
       <div className="md:col-span-2 bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
@@ -248,10 +276,26 @@ const Home = () => {
         <h2 className="text-xl font-semibold mb-3 ">Mood</h2>       
         {selectedDayMood ? (
           <div className="p-3 bg-green-200 rounded-lg">
-            <p className="text-3xl">{selectedDayMood.mood}</p>
-            {selectedDayMood.note && <p className="text-sm mt-2 italic">{selectedDayMood.note}</p>}
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-3xl">{selectedDayMood.mood}</p>
+                {selectedDayMood.note && <p className="text-sm mt-2 italic">{selectedDayMood.note}</p>}
+              </div>
+              <button
+                onClick={handleDeleteMood}
+                className="text-sm bg-red-300 px-3 py-1 rounded-full hover:bg-red-400 transition"
+              >
+                🗑️ Sil
+              </button>
+            </div>
+            <div className="mt-3 text-xs text-gray-600">
+              Yeni mood seçin
+            </div>
           </div>
-        ) : (
+        ) : null}
+        
+        {/* Mood seçimi - her zaman görünür */}
+        {(
           <>
             <div className="flex flex-wrap gap-3 mb-3"> 
               {moodsEmoji.map(m => (
@@ -278,7 +322,7 @@ const Home = () => {
               onClick={handleAddMood}
               className="bg-green-300 rounded-lg p-2 w-full hover:bg-green-400 transition"
             >
-              Kaydet
+              {selectedDayMood ? 'Güncelle' : 'Kaydet'}
             </button>
           </>
         )}
@@ -335,9 +379,14 @@ const Home = () => {
             </div>
           </SortableContext>
         </DndContext>
-        
-        {showAddTask && <TaskStats tasks={tasks} theme={theme} />}
       </div>
+
+      {/* Task Statistics - ayrı bölüm */}
+      {showAddTask && (
+        <div className="md:col-span-2 bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+          <TaskStats tasks={tasks} theme={theme} />
+        </div>
+      )}
 
       {/* Journal */}
       <div className="bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
@@ -362,8 +411,7 @@ const Home = () => {
           ))}
         </div>
       </div>
-
-
+    </div>
     </div>
   );
 };

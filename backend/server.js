@@ -42,6 +42,7 @@ async function initDb() {
       user_id INT REFERENCES users(id) ON DELETE CASCADE,
       mood VARCHAR(20),
       note TEXT,
+      day DATE NOT NULL,
       created_at TIMESTAMP DEFAULT NOW()
     );`;
 
@@ -69,6 +70,15 @@ async function initDb() {
   await pool.query(createMoods);
   await pool.query(createTasks);
   await pool.query(createJournals);
+  
+  // Mevcut tablolara day kolonu ekle (eğer yoksa)
+  try {
+    await pool.query("ALTER TABLE moodentries ADD COLUMN IF NOT EXISTS day DATE");
+    await pool.query("UPDATE moodentries SET day = DATE(created_at) WHERE day IS NULL");
+    console.log("Day column added to moodentries if needed");
+  } catch (err) {
+    console.log("Day column already exists or error:", err.message);
+  }
 }
 
 initDb().catch(err => console.error("DB init failed", err));

@@ -58,7 +58,7 @@ const TaskStats = ({ tasks, theme }) => {
   };
 
   return (
-    <div className={`p-4 rounded-lg ${theme === 'light' ? 'bg-white' : 'bg-night-900'} shadow-sm border`}>
+    <div className={`p-4 rounded-lg ${theme === 'light' ? 'bg-yellow-100' : 'bg-yellow-100'} shadow-sm border`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold dark:text-black">📊 Görev İstatistikleri</h3>
         <div className="text-2xl font-bold text-green-500 dark:text-black">

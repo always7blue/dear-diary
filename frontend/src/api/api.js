@@ -17,9 +17,9 @@ export const toggleTask = (id)=>API.patch(`/tasks/${id}`, {}, withToken());
 export const deleteTask = (id)=>API.delete(`/tasks/${id}`, withToken());
 
 // Mood
-// Mood
 export const getMoods = (params)=>API.get('/mood', { ...withToken(), params });
 export const addMood = (data)=>API.post('/mood', data, withToken());
+export const deleteMood = (id)=>API.delete(`/mood/${id}`, withToken());
 
 // Journal
 export const getJournals = (params)=>API.get('/journals', { ...withToken(), params });

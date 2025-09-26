@@ -71,7 +71,7 @@ const PomodoroTimer = ({ theme }) => {
   const progress = ((modes[mode].defaultTime * 60 - timeLeft) / (modes[mode].defaultTime * 60)) * 100;
 
   return (
-    <div className={`bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 ${theme === 'light' ? 'bg-white' : 'bg-night-900'} border-2 border-dashed border-gray-300 dark:border-gray-600`}>
+    <div className="rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 bg-green-100 dark:bg-green-100 border-2 border-dashed border-gray-300 dark:border-gray-600">
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
           <h3 className="text-lg font-semibold dark:text-black">🍅 Pomodoro Timer</h3>

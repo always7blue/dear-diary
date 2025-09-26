@@ -25,8 +25,7 @@ ChartJS.register(
 );
 
 const moodEmojiMap = {
-  '😊': 5, '😎': 4, '🤩': 5,
-  '😔': 2, '😡': 1, '😴': 3
+  '😢': 1, '😔': 2, '😐': 3, '😊': 4, '🤩': 5
 };
 
 export default function MoodChart({ theme }) {
@@ -37,6 +36,16 @@ export default function MoodChart({ theme }) {
   useEffect(() => {
     fetchMoods();
   }, [view]);
+
+  // Mood güncellendiğinde chart'ı yenile
+  useEffect(() => {
+    const handleMoodUpdate = () => {
+      fetchMoods();
+    };
+
+    window.addEventListener('moodUpdated', handleMoodUpdate);
+    return () => window.removeEventListener('moodUpdated', handleMoodUpdate);
+  }, []);
 
   // Cleanup chart on unmount
   useEffect(() => {
@@ -86,15 +95,18 @@ export default function MoodChart({ theme }) {
       targetDate.setDate(startDate.getDate() + index);
       const dateStr = targetDate.toISOString().split('T')[0];
       
-      const dayMoods = moods.filter(m => 
-        m.created_at && m.created_at.startsWith(dateStr)
-      );
+      const dayMoods = moods.filter(m => {
+        const moodDate = new Date(m.created_at).toISOString().split('T')[0];
+        return moodDate === dateStr;
+      });
       
       if (dayMoods.length === 0) return null;
       
-      const avgMood = dayMoods.reduce((sum, m) => 
-        sum + (moodEmojiMap[m.mood] || 3), 0) / dayMoods.length;
-      return Math.round(avgMood * 10) / 10;
+      // En son eklenen mood'u al (aynı gün birden fazla mood varsa)
+      const latestMood = dayMoods[0];
+      const moodValue = moodEmojiMap[latestMood.mood] || 3;
+      
+      return moodValue;
     });
 
     return {
@@ -129,7 +141,7 @@ export default function MoodChart({ theme }) {
         ticks: {
           stepSize: 1,
           callback: function(value) {
-            const emojiMap = { 1: '😡', 2: '😔', 3: '😴', 4: '😎', 5: '😊' };
+            const emojiMap = { 1: '😢', 2: '😔', 3: '😐', 4: '😊', 5: '🤩' };
             return emojiMap[value] || '';
           }
         },
