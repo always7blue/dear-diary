@@ -38,13 +38,13 @@ export default function Calendar({ value, onChange, month, setMonth, theme, onDa
   };
 
   return (
-    <div className={`bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200`}> 
+    <div className={`bg-green-100 rounded-3xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200 w-full`}> 
       <div className="flex items-center justify-between mb-3">
-        <button onClick={goPrev} className="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-night-200">‹</button>
-        <div className="font-semibold">
+        <button onClick={goPrev} className="px-2 sm:px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-night-200 text-sm sm:text-base">‹</button>
+        <div className="font-semibold text-sm sm:text-base">
           {month.toLocaleString('tr-TR', { month: 'long' })} {month.getFullYear()}
         </div>
-        <button onClick={goNext} className="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-night-200">›</button>
+        <button onClick={goNext} className="px-2 sm:px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-night-200 text-sm sm:text-base">›</button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500">
         {dayNames.map(n => (
@@ -58,7 +58,7 @@ export default function Calendar({ value, onChange, month, setMonth, theme, onDa
             disabled={!d}
             onClick={() => d && selectDay(d)}
             onDoubleClick={() => d && onDayDoubleClick && onDayDoubleClick(new Date(month.getFullYear(), month.getMonth(), d))}
-            className={`h-9 rounded-full text-sm transition
+            className={`h-8 sm:h-9 rounded-full text-xs sm:text-sm transition
               ${!d ? 'opacity-0 cursor-default' : ''}
               ${isSelected(d) ? 'bg-rose-400 text-white shadow' : 'hover:bg-rose-100 dark:hover:bg-night-200'}`}
           >

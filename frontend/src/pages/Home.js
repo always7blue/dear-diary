@@ -35,6 +35,7 @@ const Home = () => {
   const [taskText, setTaskText] = useState('');
   const [journals, setJournals] = useState([]);
   const [journalText, setJournalText] = useState('');
+  const [editingJournal, setEditingJournal] = useState(null);
   const [profile, setProfile] = useState(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0,10)); // YYYY-MM-DD
   const [currentMonth, setCurrentMonth] = useState(() => new Date()); // Takvim için ayrı ay state'i
@@ -208,6 +209,36 @@ const Home = () => {
     }
   };
 
+  const handleEditJournal = (journal) => {
+    setEditingJournal(journal);
+    setJournalText(journal.content);
+  };
+
+  const handleUpdateJournal = async (e) => {
+    e.preventDefault();
+    if (!journalText.trim()) return;
+
+    try {
+      // Önce eski journal'ı sil
+      await deleteJournal(editingJournal.id);
+      // Sonra yeni içerikle ekle
+      await addJournal({
+        content: journalText,
+        date: selectedDate
+      });
+      setJournalText("");
+      setEditingJournal(null);
+      fetchJournals();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingJournal(null);
+    setJournalText("");
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
@@ -233,6 +264,7 @@ const Home = () => {
     <div className="relative">
       {/* Profil simgesi - görevler ile aynı hizada */}
       <div className="absolute top-4 right-80 z-10">
+        <div className="bg-yellow-100 backdrop-blur-sm rounded-2xl p-3 shadow-lg hover:shadow-xl transition-shadow duration-200">
         <Link 
         to="/profile" 
         className="block w-12 h-12 rounded-full overflow-hidden bg-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-200">
@@ -246,33 +278,34 @@ const Home = () => {
             <div className="w-full h-full flex items-center justify-center text-lg">😊</div>
           )}
         </Link>
+        <p className="text-xs text-center mt-2 text-gray-600 font-medium">Profil</p>
+        </div>
       </div>
 
-      <div className="max-w-6xl mx-auto mt-10 p-4 grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-4 flex justify-between items-center gap-3">
-          <div className="flex gap-4 flex-1">
-            <div className="w-96">
-              <Calendar
-                value={selectedDate}
-                onChange={setSelectedDate}
-                month={currentMonth}
-                setMonth={setCurrentMonth}
-                onDayDoubleClick={(d)=>navigate(`/calendar?month=${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
-              />
-            </div>
-            <div className="w-80">
-              <PomodoroTimer theme={theme} />
-            </div>
+      <div className="max-w-7xl mx-auto mt-10 p-4 space-y-6">
+        {/* Üst kısım - Takvim ve Timer */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="max-w-md">
+            <Calendar
+              value={selectedDate}
+              onChange={setSelectedDate}
+              month={currentMonth}
+              setMonth={setCurrentMonth}
+              onDayDoubleClick={(d)=>navigate(`/calendar?month=${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
+            />
+          </div>
+          <div className="max-w-sm">
+            <PomodoroTimer theme={theme} />
           </div>
         </div>
       
-      {/* Mood Chart */}
-      <div className="md:col-span-2 bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-        <MoodChart theme={theme} />
-      </div>
-      
-      {/* Mood */}
-      <div className="bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+        {/* Orta kısım - Mood Chart ve Mood */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="max-w-lg bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+            <MoodChart theme={theme} />
+          </div>
+          
+          <div className="max-w-sm bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
         <h2 className="text-xl font-semibold mb-3 ">Mood</h2>       
         {selectedDayMood ? (
           <div className="p-3 bg-green-200 rounded-lg">
@@ -320,16 +353,18 @@ const Home = () => {
             <button
               type="button"
               onClick={handleAddMood}
-              className="bg-green-300 rounded-lg p-2 w-full hover:bg-green-400 transition"
+              className="mt-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-2 rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
             >
               {selectedDayMood ? 'Güncelle' : 'Kaydet'}
             </button>
           </>
         )}
-      </div>
+          </div>
+        </div>
 
-      {/* Tasks */}
-      <div className="bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+        {/* Alt kısım - Tasks ve Journal */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-xl font-semibold">Görevler</h2>
           <button
@@ -382,36 +417,77 @@ const Home = () => {
       </div>
 
       {/* Task Statistics - ayrı bölüm */}
-      {showAddTask && (
-        <div className="md:col-span-2 bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-          <TaskStats tasks={tasks} theme={theme} />
-        </div>
-      )}
+          {showAddTask && (
+            <div className="bg-yellow-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+              <TaskStats tasks={tasks} theme={theme} />
+            </div>
+          )}
+          </div>
 
-      {/* Journal */}
-      <div className="bg-green-100 rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-        <h2 className="text-xl font-semibold mb-3">Günlük</h2>
-        <form onSubmit={handleAddJournal} className="flex flex-col gap-2 mb-3">
-          <textarea
-            placeholder="Yeni günlük not"
-            value={journalText}
-            onChange={e => setJournalText(e.target.value)}
-            className="p-2 rounded-lg border w-full"
-          />
-          <button
-            type="submit"
-            className="bg-blue-300 rounded-lg p-2 hover:bg-blue-400 transition"
-          >
-            Ekle
-          </button>
+          {/* Journal */}
+          <div className="bg-green-100 rounded-3xl shadow-md p-10 hover:shadow-lg transition-shadow duration-200">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-pink-300 rounded-full flex items-center justify-center">
+            <span className="text-white text-xl">📓</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800">Günlük Notlarım</h2>
+        </div>
+        
+        <form onSubmit={editingJournal ? handleUpdateJournal : handleAddJournal} className="mb-6">
+          <div className="relative">
+            <textarea
+              placeholder="Bugün nasıl geçti? Düşüncelerini, duygularını, yaşadıklarını buraya yazabilirsin..."
+              value={journalText}
+              onChange={e => {
+                if (e.target.value.length <= 500) {
+                  setJournalText(e.target.value);
+                }
+              }}
+              maxLength={500}
+              className="w-full p-4 rounded-2xl border-2 border-green-200 focus:border-green-400 focus:outline-none resize-none transition-all duration-200 min-h-[200px] text-gray-700 placeholder-gray-400 shadow-sm text-lg"
+              rows="8"
+            />
+            <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+              {journalText.length}/500
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button
+              type="submit"
+              disabled={!journalText.trim()}
+              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            >
+              {editingJournal ? '✨ Güncelle' : '✨ Notumu Kaydet'}
+            </button>
+            {editingJournal && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="px-6 py-4 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 font-semibold text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              >
+                İptal
+              </button>
+            )}
+          </div>
         </form>
-        <div>
-          {journals.map(j => (
-            <JournalEntry key={j.id} journal={j} onDelete={handleDeleteJournal} />
-          ))}
+        
+        <div className="space-y-4">
+          {journals.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-2">📖</div>
+              <p className="text-lg">Henüz günlük notun yok</p>
+              <p className="text-sm">İlk notunu yazmaya başla!</p>
+            </div>
+          ) : (
+            journals.map(j => (
+              <div key={j.id} className="transform hover:scale-[1.02] transition-all duration-200">
+                <JournalEntry journal={j} onDelete={handleDeleteJournal} onEdit={handleEditJournal} />
+              </div>
+            ))
+          )}
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };

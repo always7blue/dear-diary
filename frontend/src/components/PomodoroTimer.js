@@ -71,10 +71,10 @@ const PomodoroTimer = ({ theme }) => {
   const progress = ((modes[mode].defaultTime * 60 - timeLeft) / (modes[mode].defaultTime * 60)) * 100;
 
   return (
-    <div className="rounded-3xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 bg-green-100 dark:bg-green-100 border-2 border-dashed border-gray-300 dark:border-gray-600">
+    <div className="rounded-3xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200 bg-green-100 dark:bg-green-100 border-2 border-dashed border-gray-300 dark:border-gray-600 w-full">
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <h3 className="text-lg font-semibold dark:text-black">🍅 Pomodoro Timer</h3>
+          <h3 className="text-base sm:text-lg font-semibold dark:text-black">🍅 Pomodoro Timer</h3>
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400"
@@ -105,7 +105,7 @@ const PomodoroTimer = ({ theme }) => {
           </div>
         )}
 
-        <div className="relative w-48 h-48 mx-auto mb-6">
+        <div className="relative w-32 h-32 sm:w-48 sm:h-48 mx-auto mb-4 sm:mb-6">
           {/* Progress Circle */}
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             <circle
@@ -131,17 +131,17 @@ const PomodoroTimer = ({ theme }) => {
           
           {/* Time Display */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className={`text-3xl font-bold ${modes[mode].color.replace('bg-', 'text-')} dark:text-black`}>
+            <div className={`text-xl sm:text-3xl font-bold ${modes[mode].color.replace('bg-', 'text-')} dark:text-black`}>
               {formatTime(timeLeft)}
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
               {modes[mode].name}
             </div>
           </div>
         </div>
 
         {/* Mode Buttons */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-1 sm:gap-2 mb-4 flex-wrap justify-center">
           {Object.entries(modes).map(([key, config]) => (
             <button
               key={key}
@@ -150,7 +150,7 @@ const PomodoroTimer = ({ theme }) => {
                 setTimeLeft(config.defaultTime * 60);
                 setIsRunning(false);
               }}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+              className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm transition-colors ${
                 mode === key
                   ? `${config.color} text-white`
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-night-700 dark:text-black'
@@ -162,18 +162,18 @@ const PomodoroTimer = ({ theme }) => {
         </div>
 
         {/* Control Buttons */}
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-2 sm:gap-3 justify-center flex-wrap">
           {!isRunning ? (
             <button
               onClick={startTimer}
-              className={`px-6 py-2 rounded-full text-white font-semibold ${modes[mode].color} hover:opacity-90 transition-opacity`}
+              className={`px-4 sm:px-6 py-2 rounded-full text-white font-semibold text-sm sm:text-base ${modes[mode].color} hover:opacity-90 transition-opacity`}
             >
               ► Başlat
             </button>
           ) : (
             <button
               onClick={pauseTimer}
-              className="px-6 py-2 rounded-full bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition-colors"
+              className="px-4 sm:px-6 py-2 rounded-full bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition-colors text-sm sm:text-base"
             >
               ❚❚ Duraklat
             </button>
@@ -181,7 +181,7 @@ const PomodoroTimer = ({ theme }) => {
           
           <button
             onClick={resetTimer}
-            className="px-6 py-2 rounded-full bg-gray-500 text-white font-semibold hover:bg-gray-600 transition-colors"
+            className="px-4 sm:px-6 py-2 rounded-full bg-gray-500 text-white font-semibold hover:bg-gray-600 transition-colors text-sm sm:text-base"
           >
             🗘 Sıfırla
           </button>
