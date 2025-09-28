@@ -14,12 +14,11 @@ Kişisel günlük uygulaması. Ruh halinizi takip edin, günlük yazın ve göre
 ## 🚀 Kurulum
 
 ```bash
-git clone https://github.com/kullanici/dear-diary.git
+git clone https://github.com/always7blue/dear-diary.git
 cd dear-diary
 docker-compose up -d
 ```
 
-**Erişim:** http://localhost:3000
 
 ## 🛠️ Teknolojiler
 
@@ -37,4 +36,3 @@ docker-compose up -d
 
 ---
 
-⭐ Beğendiyseniz yıldız vermeyi unutmayın!
