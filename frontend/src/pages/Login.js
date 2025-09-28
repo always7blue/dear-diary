@@ -80,6 +80,18 @@ const Login = () => {
           <div className="mt-4">
             <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
           </div>
+          
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
+              Hesabınız yok mu?{' '}
+              <button
+                onClick={() => navigate('/register')}
+                className="text-rose-500 hover:text-rose-600 font-medium"
+              >
+                Kayıt olun
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>

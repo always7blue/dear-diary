@@ -9,11 +9,11 @@ router.get("/", authMiddleware, async (req, res) => {
   try {
     const { date } = req.query; // opsiyonel: YYYY-MM-DD
     const params = [req.user.id];
-    let sql = "SELECT id, user_id, mood, note, created_at FROM moodentries WHERE user_id=$1";
+    let sql = "SELECT id, user_id, mood, note, day, created_at FROM moodentries WHERE user_id=$1";
 
     // Eğer tarih filtresi eklenirse
     if (date) {
-      sql += " AND DATE(created_at) = $2";
+      sql += " AND day = $2";
       params.push(date);
     }
 
@@ -38,14 +38,14 @@ router.post("/", authMiddleware, async (req, res) => {
 
     // Önce o günün tüm mood'larını sil
     await pool.query(
-      "DELETE FROM moodentries WHERE user_id = $1 AND DATE(created_at) = $2",
+      "DELETE FROM moodentries WHERE user_id = $1 AND day = $2",
       [req.user.id, dateStr]
     );
 
     // Sonra yeni mood'u ekle
     const result = await pool.query(
-      "INSERT INTO moodentries (user_id, mood, note, created_at) VALUES ($1, $2, $3, $4) RETURNING id, user_id, mood, note, created_at",
-      [req.user.id, mood, note || null, targetDate]
+      "INSERT INTO moodentries (user_id, mood, note, day, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING id, user_id, mood, note, day, created_at",
+      [req.user.id, mood, note || null, dateStr, targetDate]
     );
 
     res.json(result.rows[0]);

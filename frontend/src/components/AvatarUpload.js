@@ -14,7 +14,7 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate, theme }) => {
       const formData = new FormData();
       formData.append('avatar', file);
       
-      const response = await fetch(`${BASE_URL}/profile/avatar`, {
+      const response = await fetch(`${BASE_URL}/api/profile/avatar`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

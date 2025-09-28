@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import authRouter from "./routes/auth.js";
 import moodRouter from "./routes/mood.js";
@@ -12,18 +14,36 @@ import googleAuthRouter from "./routes/googleAuth.js";
 import { pool } from "./db.js";
 
 dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads'));
+app.use(express.static('public'));
 
-app.use("/auth", authRouter);
-app.use("/auth", googleAuthRouter);
-app.use("/mood", moodRouter);
-app.use("/tasks", tasksRouter);
-app.use("/journals", journalsRouter);
-app.use("/profile", profileRouter);
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// API routes
+app.use("/api/auth", authRouter);
+app.use("/api/auth", googleAuthRouter);
+app.use("/api/mood", moodRouter);
+app.use("/api/tasks", tasksRouter);
+app.use("/api/journals", journalsRouter);
+app.use("/api/profile", profileRouter);
+
+// Serve React app for all other routes
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // initialize database tables if not exist (PgAdmin tablolarına uyumlu)
 async function initDb() {

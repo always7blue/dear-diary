@@ -80,6 +80,18 @@ const Register = () => {
             Register
           </button>
         </form>
+        
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Zaten hesabınız var mı?{' '}
+            <button
+              onClick={() => navigate('/login')}
+              className="text-rose-500 hover:text-rose-600 font-medium"
+            >
+              Giriş yapın
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
