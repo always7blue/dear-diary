@@ -27,3 +27,4 @@ docker-compose up -d
 **DevOps:** Docker, Nginx
 
 
+<img width="1315" height="886" alt="Ekran görüntüsü 2025-09-28 165812" src="https://github.com/user-attachments/assets/e04d2ba4-887d-4adc-9266-073348f74207" />
